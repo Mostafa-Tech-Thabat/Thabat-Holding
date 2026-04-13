@@ -1,6 +1,6 @@
-/* ── Thabat Holding Dashboard – app.js v2 ── */
+/* ── Thabat Holding Dashboard – Static JS ── */
 
-// ── Colour palette ────────────────────────────────────────────────────────────
+// ── Colour palette ──────────────────────────────────────────────────────────
 const B={
   teal:"#2D8B72",tealDark:"#1e6b56",tealLight:"#4aab8e",tealPale:"#d4ece5",
   bg:"#f0f4f2",bgLight:"#f7faf8",card:"#ffffff",border:"#dde8e3",
@@ -10,7 +10,7 @@ const B={
 };
 const CHART_COLORS=["#2D8B72","#9B8B6E","#4aab8e","#c4b49a","#1e6b56","#2d6b8b","#6b8b7a","#8b6b2d","#2d5b8b","#8b5b2d"];
 
-// ── Formatters ────────────────────────────────────────────────────────────────
+// ── Formatters ───────────────────────────────────────────────────────────────
 function fmt(n){return new Intl.NumberFormat("en-US",{maximumFractionDigits:0}).format(n||0);}
 function fmtM(n){
   if(!n)return"—";
@@ -20,25 +20,14 @@ function fmtM(n){
   return fmt(n);
 }
 
-// ── Shareholder document types ───────────────────────────────────────────────
-const SH_DOC_TYPES=[
-  {key:"national_id",label:"National ID",icon:"🪪"},
-  {key:"passport",label:"Passport",icon:"📗"},
-  {key:"national_address",label:"National Address",icon:"📍"},
-  {key:"birth_cert",label:"Birth Certificate",icon:"📜"},
-  {key:"bank_iban",label:"Bank / IBAN",icon:"🏦"},
-  {key:"tax_cert",label:"Tax Certificate",icon:"🧾"},
-  {key:"other",label:"Other Documents",icon:"📎"},
-];
-
-// ── Static data ───────────────────────────────────────────────────────────────
+// ── Static data ──────────────────────────────────────────────────────────────
 const SHAREHOLDERS=[
-  {id:"sh1",name:"Abdullah Almunif",role:"Chairman & Group CEO",pct:17.5,color:B.teal,docs:{}},
-  {id:"sh2",name:"Ali Almunif",role:"Board Member & Partner",pct:16.5,color:B.gold,docs:{}},
-  {id:"sh3",name:"Ibrahim Almunif",role:"Board Member & Partner",pct:16.5,color:B.tealLight,docs:{}},
-  {id:"sh4",name:"Maha Almunif",role:"Partner",pct:16.5,color:B.goldLight,docs:{}},
-  {id:"sh5",name:"Mari Almunif",role:"Board Member & Partner",pct:16.5,color:B.tealDark,docs:{}},
-  {id:"sh6",name:"Munif Almunif",role:"Board Member & Partner",pct:16.5,color:"#b8a882",docs:{}},
+  {id:"sh1",name:"Abdullah Almunif",role:"Chairman & Group CEO",pct:17.5,color:B.teal},
+  {id:"sh2",name:"Ali Almunif",role:"Board Member & Partner",pct:16.5,color:B.gold},
+  {id:"sh3",name:"Ibrahim Almunif",role:"Board Member & Partner",pct:16.5,color:B.tealLight},
+  {id:"sh4",name:"Maha Almunif",role:"Partner",pct:16.5,color:B.goldLight},
+  {id:"sh5",name:"Mari Almunif",role:"Board Member & Partner",pct:16.5,color:B.tealDark},
+  {id:"sh6",name:"Munif Almunif",role:"Board Member & Partner",pct:16.5,color:"#b8a882"},
 ];
 
 const CATEGORIES={
@@ -133,38 +122,23 @@ const REAL_ESTATE=[
   {id:"r6",name:"Property Ottawa, Canada",location:"Ottawa, Canada",date:"May-16",cost:2022942,val:2000000,share:"100%",sqm:"403,317 M²",rent:155451},
 ];
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// ── State ────────────────────────────────────────────────────────────────────
 let state={
-  authed:false,role:"",
-  page:"structure",            // ← starts on structure page
+  authed:false,role:"",page:"overview",
   selInvId:null,catFilter:"All",search:"",
   investments:[...INVESTMENTS.map(i=>({...i,docs:[...i.docs]}))],
-  shareholders:[...SHAREHOLDERS.map(sh=>({...sh,docs:{...sh.docs}}))],
   modal:null,form:{},
-  sidebarCollapsed:false,
-  adminTab:"investments",      // "investments" | "users"
-  selShId:null,                // selected shareholder for doc modal
-  selDocType:null,             // selected doc type key for upload
 };
+const CREDS={admin:"thabat2024",viewer:"view123"};
 
-// ── User management (in-memory, admin-only) ───────────────────────────────────
-let USERS=[
-  {id:"u1",username:"admin",password:"thabat2024",role:"admin",created:"2024-01-01"},
-  {id:"u2",username:"viewer",password:"view123",role:"viewer",created:"2024-01-01"},
-];
-
-// ── Auth helpers ──────────────────────────────────────────────────────────────
-function findUser(username,password){
-  return USERS.find(u=>u.username===username&&u.password===password)||null;
-}
-
-// ── Chart instances ───────────────────────────────────────────────────────────
+// ── Active chart instances (to destroy on re-render) ─────────────────────────
 const chartInstances={};
+
 function destroyChart(id){
   if(chartInstances[id]){chartInstances[id].destroy();delete chartInstances[id];}
 }
 
-// ── Computed helpers ──────────────────────────────────────────────────────────
+// ── Computed helpers ─────────────────────────────────────────────────────────
 function totalInvested(){return state.investments.reduce((s,i)=>s+(i.invested||0),0);}
 function totalFVMarket(){return state.investments.reduce((s,i)=>s+(i.fvMarket||0),0);}
 function totalGain(){return state.investments.reduce((s,i)=>s+(i.unrealGain||0),0);}
@@ -179,13 +153,16 @@ function filteredInvs(){
   });
 }
 
-// ── UI builders ───────────────────────────────────────────────────────────────
+// ── HTML builders ────────────────────────────────────────────────────────────
 function tag(text,color){
   return `<span class="tag" style="background:${color}20;color:${color};border:1px solid ${color}30">${text}</span>`;
 }
 function bar(pct,color){
   const w=Math.min(100,Math.max(0,pct||0));
   return `<div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>`;
+}
+function btn(text,cls,attrs="",style=""){
+  return `<button class="btn ${cls}" ${attrs} style="${style}">${text}</button>`;
 }
 function pieChartSVG(slices,size=130){
   const total=slices.reduce((s,x)=>s+(x.pct||0),0);
@@ -204,51 +181,35 @@ function pieChartSVG(slices,size=130){
   });
   return `<svg class="pie-wrap" width="${size}" height="${size}">${paths}<circle cx="${cx}" cy="${cy}" r="${(r*0.44).toFixed(1)}" fill="${B.card}"/></svg>`;
 }
-function statCard(lbl,val,sub,color,icon){
-  return `<div class="stat-card" style="border-top-color:${color}">
-    <div class="icon">${icon}</div>
-    <div class="lbl">${lbl}</div>
-    <div class="val" style="color:${color}">${val}</div>
-    ${sub?`<div class="sub-val">${sub}</div>`:""}
-  </div>`;
+
+// ── AUTH SCREEN ──────────────────────────────────────────────────────────────
+function renderAuth(){
+  document.getElementById("auth-screen").classList.remove("hidden");
+  document.getElementById("app").classList.add("hidden");
 }
 
-// ── Sidebar ───────────────────────────────────────────────────────────────────
-function updateSidebar(){
-  const sb=document.getElementById("sidebar");
-  const app=document.getElementById("app");
-  if(state.sidebarCollapsed){
-    sb.classList.add("collapsed");
-    app.classList.add("sidebar-collapsed");
-  } else {
-    sb.classList.remove("collapsed");
-    app.classList.remove("sidebar-collapsed");
-  }
-}
-
-// ── renderApp ─────────────────────────────────────────────────────────────────
+// ── MAIN APP RENDER ──────────────────────────────────────────────────────────
 function renderApp(){
   document.getElementById("auth-screen").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
 
-  updateSidebar();
-
-  // nav active states
+  // nav active
   document.querySelectorAll(".nav-btn[data-page]").forEach(b=>{
     b.classList.toggle("active",b.dataset.page===state.page);
   });
-  document.getElementById("nav-user-label").textContent=state.role;
+  document.getElementById("nav-user-label").textContent="👤 "+state.role;
 
   const adminBtn=document.getElementById("nav-admin-btn");
-  if(adminBtn) adminBtn.classList.toggle("hidden",state.role!=="admin");
+  if(adminBtn) adminBtn.style.display=state.role==="admin"?"inline-block":"none";
 
+  // back button only shown on detail page
   const backBtn=document.getElementById("back-btn");
-  if(backBtn) backBtn.classList.toggle("hidden",state.page!=="detail");
-
-  const topBar=document.getElementById("top-bar");
-  if(topBar) topBar.style.display=state.page==="detail"?"flex":"none";
+  if(backBtn){
+    backBtn.style.display=state.page==="detail"?"inline-block":"none";
+  }
 
   const content=document.getElementById("main-content");
+  // destroy all old charts
   Object.keys(chartInstances).forEach(destroyChart);
 
   if(state.page==="detail"){
@@ -266,7 +227,6 @@ function renderApp(){
     content.innerHTML=renderRealEstate();
   } else if(state.page==="shareholders"){
     content.innerHTML=renderShareholders();
-    bindShareholdersEvents();
   } else if(state.page==="structure"){
     content.innerHTML=renderStructure();
     bindStructureEvents();
@@ -278,11 +238,12 @@ function renderApp(){
   if(state.modal) renderModal();
 }
 
-// ── OVERVIEW ──────────────────────────────────────────────────────────────────
+// ── OVERVIEW ─────────────────────────────────────────────────────────────────
 function renderOverview(){
   const tvfm=totalFVMarket(),ti=totalInvested(),tg=totalGain(),td=totalDividends();
   const reValTotal=REAL_ESTATE.reduce((s,r)=>s+r.val,0);
 
+  // sector allocation
   let secRows="";
   Object.keys(CATEGORIES).forEach(sec=>{
     const secInvs=state.investments.filter(x=>x.sector===sec);
@@ -290,9 +251,8 @@ function renderOverview(){
     if(!val)return;
     const cat=CATEGORIES[sec];
     secRows+=`<div class="sec-row">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-        <span>${cat.icon}</span>
-        <span style="flex:1;font-size:13px;font-weight:500">${sec}</span>
+      <div class="sec-row meta" style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        <span>${cat.icon}</span><span style="flex:1;font-size:13px;font-weight:500">${sec}</span>
         ${tag(secInvs.length,cat.color)}
         <span style="font-weight:700;font-size:13px;color:${cat.color}">${fmtM(val)}</span>
       </div>
@@ -300,6 +260,7 @@ function renderOverview(){
     </div>`;
   });
 
+  // top moic
   const topMoic=[...state.investments].filter(i=>i.moic&&i.moic>1).sort((a,b)=>b.moic-a.moic).slice(0,8);
   let moicRows="";
   topMoic.forEach(inv=>{
@@ -312,6 +273,7 @@ function renderOverview(){
     </div>`;
   });
 
+  // shareholders strip
   let shStrip="";
   SHAREHOLDERS.forEach(sh=>{
     shStrip+=`<div style="text-align:center;min-width:90px">
@@ -330,31 +292,33 @@ function renderOverview(){
     ${statCard("Total Dividends & Exits",fmtM(td)+" SAR","",B.blue,"💸")}
   </div>
   <div class="grid-3 mb-20">
-    <div class="card" style="display:flex;gap:14px;align-items:center">
+    <div class="card row" style="display:flex;gap:14px;align-items:center">
       <div style="width:46px;height:46px;background:${B.teal}15;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🚀</div>
       <div><div style="font-size:12px;color:${B.sub}">Portfolio MOIC</div><div style="font-size:20px;font-weight:800;color:${B.teal}">15X</div></div>
     </div>
-    <div class="card" style="display:flex;gap:14px;align-items:center">
+    <div class="card row" style="display:flex;gap:14px;align-items:center">
       <div style="width:46px;height:46px;background:${B.gold}15;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🏗️</div>
       <div><div style="font-size:12px;color:${B.sub}">Active Holdings</div><div style="font-size:20px;font-weight:800;color:${B.gold}">${state.investments.filter(i=>i.status==="active").length}</div></div>
     </div>
-    <div class="card" style="display:flex;gap:14px;align-items:center">
+    <div class="card row" style="display:flex;gap:14px;align-items:center">
       <div style="width:46px;height:46px;background:${B.blue}15;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🏢</div>
       <div><div style="font-size:12px;color:${B.sub}">Real Estate Portfolio</div><div style="font-size:20px;font-weight:800;color:${B.blue}">${fmtM(reValTotal)} SAR</div></div>
     </div>
   </div>
   <div class="grid-2 mb-20">
     <div class="card">
-      <div class="card-header">Portfolio allocation by sector</div>${secRows}
+      <div class="card-header">Portfolio allocation by sector</div>
+      ${secRows}
     </div>
     <div class="card">
-      <div class="card-header">Top holdings by MOIC</div>${moicRows}
+      <div class="card-header">Top holdings by MOIC</div>
+      ${moicRows}
     </div>
   </div>
-  <div class="card mb-20">
+  <div class="card mb-20" id="overview-anoosh-card">
     <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
       <span>📊 Anoosh — Revenue &amp; Net Profit 2015–2025 (SAR) &nbsp;<span style="font-size:12px;color:${B.muted};font-weight:400">Largest holding · 70%</span></span>
-      <button class="btn small" id="anoosh-detail-btn">Full detail →</button>
+      <button class="btn small" id="anoosh-detail-btn" data-inv="i01">Full detail →</button>
     </div>
     <div class="chart-legend">
       <span class="legend-item"><span class="legend-dot" style="background:${B.teal}"></span>Revenue</span>
@@ -368,6 +332,16 @@ function renderOverview(){
     <div style="display:flex;gap:16px;flex-wrap:wrap">${shStrip}</div>
   </div>`;
 }
+
+function statCard(lbl,val,sub,color,icon){
+  return `<div class="stat-card" style="border-top-color:${color}">
+    <div class="icon">${icon}</div>
+    <div class="lbl">${lbl}</div>
+    <div class="val" style="color:${color}">${val}</div>
+    ${sub?`<div class="sub-val">${sub}</div>`:""}
+  </div>`;
+}
+
 function bindOverviewEvents(){
   document.querySelectorAll(".moic-row[data-inv]").forEach(el=>{
     el.addEventListener("click",()=>{state.selInvId=el.dataset.inv;state.page="detail";renderApp();});
@@ -375,6 +349,7 @@ function bindOverviewEvents(){
   const ab=document.getElementById("anoosh-detail-btn");
   if(ab) ab.addEventListener("click",()=>{state.selInvId="i01";state.page="detail";renderApp();});
 }
+
 function initOverviewChart(){
   if(!window.Chart||!HISTORICAL.i01)return;
   const ctx=document.getElementById("chart_overview_anoosh");
@@ -383,7 +358,7 @@ function initOverviewChart(){
   chartInstances["overview_anoosh"]=new Chart(ctx,barChartConfig(HISTORICAL.i01));
 }
 
-// ── INVESTMENTS ───────────────────────────────────────────────────────────────
+// ── INVESTMENTS PAGE ─────────────────────────────────────────────────────────
 function renderInvestments(){
   const fi=filteredInvs();
   const fTi=fi.reduce((s,i)=>s+(i.invested||0),0);
@@ -401,8 +376,8 @@ function renderInvestments(){
     const cat=CATEGORIES[inv.sector]||CATEGORIES["Retail"];
     const gain=inv.unrealGain||0;
     const hasChart=!!HISTORICAL[inv.id];
-    cards+=`<div class="inv-card" data-inv="${inv.id}">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+    cards+=`<div class="inv-card" data-inv="${inv.id}" style="border-color:${B.border}">
+      <div class="row mb-16" style="display:flex;align-items:center;gap:8px">
         <span style="font-size:16px">${cat.icon}</span>
         ${tag(inv.sector,cat.color)}
         <span style="margin-left:auto;font-size:11px;color:${B.muted}">${inv.year}</span>
@@ -422,7 +397,7 @@ function renderInvestments(){
   });
 
   return `
-  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+  <div class="row mb-16" style="display:flex;align-items:center;flex-wrap:wrap;gap:10px">
     <div style="font-weight:800;font-size:20px">📂 Investment Portfolio</div>
     <input class="search-input" id="inv-search" placeholder="Search…" value="${state.search}" style="margin-left:auto">
   </div>
@@ -447,6 +422,7 @@ function renderInvestments(){
   </div>
   <div class="grid-3">${cards}</div>`;
 }
+
 function bindInvEvents(){
   document.querySelectorAll(".inv-card").forEach(el=>{
     el.addEventListener("mouseenter",()=>{
@@ -466,7 +442,7 @@ function bindInvEvents(){
   if(si) si.addEventListener("input",e=>{state.search=e.target.value;renderApp();});
 }
 
-// ── DETAIL PAGE ───────────────────────────────────────────────────────────────
+// ── DETAIL PAGE ──────────────────────────────────────────────────────────────
 function renderDetailPage(){
   const inv=currentInv();
   if(!inv)return`<p>Not found.</p>`;
@@ -474,14 +450,15 @@ function renderDetailPage(){
   const gain=inv.unrealGain||0;
   const hist=HISTORICAL[inv.id];
 
+  // ownership
   let ownersHtml="";
   if(inv.owners?.length){
     const pie=pieChartSVG(inv.owners.filter(o=>o.pct).map((o,i)=>({pct:o.pct,color:CHART_COLORS[i%CHART_COLORS.length]})),130);
     let ownerList="";
     inv.owners.slice(0,8).forEach((o,i)=>{
       ownerList+=`<div class="owner-row">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
-          <span class="owner-dot" style="background:${CHART_COLORS[i%CHART_COLORS.length]};display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0"></span>
+        <div class="owner-row meta" style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+          <span class="owner-dot" style="background:${CHART_COLORS[i%CHART_COLORS.length]}"></span>
           <span style="flex:1;font-size:12px">${o.name}</span>
           <span style="font-weight:700;font-size:12px;color:${CHART_COLORS[i%CHART_COLORS.length]}">${o.pct?o.pct+"%":"—"}</span>
         </div>
@@ -493,10 +470,12 @@ function renderDetailPage(){
     ownersHtml=`<div style="color:${B.muted}">No ownership data.</div>`;
   }
 
+  // docs
   let docsHtml=inv.docs.length===0
     ?`<div style="color:${B.muted};font-size:13px">No documents.${state.role==="admin"?" Click 📎 Upload.":""}</div>`
     :`<div style="display:flex;flex-wrap:wrap;gap:10px">${inv.docs.map(d=>`<div style="display:flex;align-items:center;gap:10px;background:${B.bgLight};border-radius:8px;padding:10px 14px;border:1px solid ${B.border}"><span style="font-size:18px">📄</span><div><div style="font-size:13px;font-weight:600">${d.name}</div><div style="font-size:11px;color:${B.muted}">${d.date} · ${d.size}</div></div></div>`).join("")}</div>`;
 
+  // charts section
   let chartsHtml="";
   if(hist){
     let kpiTiles="";
@@ -526,6 +505,7 @@ function renderDetailPage(){
     </div>`;
   }
 
+  // admin edit buttons
   let adminBtns="";
   if(state.role==="admin"){
     adminBtns=`<div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -549,6 +529,7 @@ function renderDetailPage(){
       ${adminBtns}
     </div>
   </div>
+
   <div class="grid-4 mb-20">
     <div class="detail-fin-card" style="border-top-color:${B.teal}">
       <div class="lbl">Cumulative Invested</div>
@@ -568,16 +549,21 @@ function renderDetailPage(){
       <div class="val" style="color:${B.gold}">${fmtM(inv.dividends)} SAR</div>
     </div>
   </div>
+
   ${chartsHtml}
+
   <div class="grid-2">
     <div class="card">
-      <div class="card-header">👥 Ownership Structure</div>${ownersHtml}
+      <div class="card-header">👥 Ownership Structure</div>
+      ${ownersHtml}
     </div>
     <div class="card">
-      <div class="card-header">📁 Documents</div>${docsHtml}
+      <div class="card-header">📁 Documents</div>
+      ${docsHtml}
     </div>
   </div>`;
 }
+
 function bindDetailEvents(){
   const eb=document.getElementById("edit-info-btn");
   const ub=document.getElementById("upload-doc-btn");
@@ -589,6 +575,7 @@ function bindDetailEvents(){
   });
   if(ub) ub.addEventListener("click",()=>{state.modal="uploadDoc"; renderModal();});
 }
+
 function initDetailCharts(){
   const inv=currentInv();
   if(!inv||!window.Chart)return;
@@ -602,30 +589,47 @@ function initDetailCharts(){
   },50);
 }
 
-// ── Chart configs ─────────────────────────────────────────────────────────────
+// ── CHART CONFIGS ────────────────────────────────────────────────────────────
 function barChartConfig(d){
-  return{type:"bar",data:{labels:d.years,datasets:[
-    {label:"Revenue",data:d.revenue,backgroundColor:B.teal+"cc",borderRadius:3,order:2},
-    {label:"Net Profit",data:d.netProfit,backgroundColor:d.netProfit.map(v=>v>=0?B.gold+"cc":"#c0392b99"),borderRadius:3,order:1},
-  ]},options:{responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>(ctx.dataset.label||"")+": "+fmtM(ctx.raw)+" SAR"}}},
-    scales:{x:{ticks:{font:{size:10},color:"#4a6b5a",maxRotation:45,autoSkip:false},grid:{display:false}},
-      y:{position:"left",ticks:{font:{size:10},color:"#4a6b5a",callback:v=>fmtM(v)},grid:{color:"#dde8e322"}}}}};
+  return {
+    type:"bar",
+    data:{
+      labels:d.years,
+      datasets:[
+        {label:"Revenue",data:d.revenue,backgroundColor:B.teal+"cc",borderRadius:3,order:2},
+        {label:"Net Profit",data:d.netProfit,backgroundColor:d.netProfit.map(v=>v>=0?B.gold+"cc":"#c0392b99"),borderRadius:3,order:1},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>(ctx.dataset.label||"")+": "+fmtM(ctx.raw)+" SAR"}}},
+      scales:{
+        x:{ticks:{font:{size:10},color:"#4a6b5a",maxRotation:45,autoSkip:false},grid:{display:false}},
+        y:{position:"left",ticks:{font:{size:10},color:"#4a6b5a",callback:v=>fmtM(v)},grid:{color:"#dde8e322"}},
+      }
+    }
+  };
 }
 function gpChartConfig(d){
-  return{type:"line",data:{labels:d.years,datasets:[{label:"Gross Profit %",data:d.grossProfit,
-    borderColor:B.tealLight,backgroundColor:B.tealPale+"88",borderWidth:2,fill:true,tension:0.3,
-    pointRadius:3,pointBackgroundColor:B.teal}]},
-    options:{responsive:true,maintainAspectRatio:false,
+  return {
+    type:"line",
+    data:{labels:d.years,datasets:[{label:"Gross Profit %",data:d.grossProfit,borderColor:B.tealLight,backgroundColor:B.tealPale+"88",borderWidth:2,fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:B.teal}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.raw.toFixed(1)+"%"}}},
-      scales:{x:{ticks:{font:{size:10},color:"#4a6b5a",maxRotation:45,autoSkip:false},grid:{display:false}},
-        y:{ticks:{font:{size:10},color:"#4a6b5a",callback:v=>v+"%"},grid:{color:"#dde8e322"}}}}};
+      scales:{
+        x:{ticks:{font:{size:10},color:"#4a6b5a",maxRotation:45,autoSkip:false},grid:{display:false}},
+        y:{ticks:{font:{size:10},color:"#4a6b5a",callback:v=>v+"%"},grid:{color:"#dde8e322"}},
+      }
+    }
+  };
 }
 
-// ── REAL ESTATE ───────────────────────────────────────────────────────────────
+// ── REAL ESTATE ──────────────────────────────────────────────────────────────
 function renderRealEstate(){
   const ksaProps=REAL_ESTATE.filter(r=>!r.location.includes("Canada"));
   const intlProps=REAL_ESTATE.filter(r=>r.location.includes("Canada"));
+
   let ksaRows="";
   ksaProps.forEach((r,i)=>{
     ksaRows+=`<tr style="background:${i%2===0?B.bgLight:B.card};border-bottom:1px solid ${B.border}">
@@ -639,6 +643,7 @@ function renderRealEstate(){
       <td style="padding:10px 12px;color:${B.sub}">${r.sqm}</td>
     </tr>`;
   });
+
   let intlRows="";
   intlProps.forEach(r=>{
     intlRows+=`<tr style="background:${B.bgLight}">
@@ -652,6 +657,7 @@ function renderRealEstate(){
       <td style="padding:10px 12px;color:${B.sub}">${r.sqm}</td>
     </tr>`;
   });
+
   return `
   <div class="page-title">🏗️ Real Estate Portfolio</div>
   <div class="grid-3 mb-20">
@@ -664,7 +670,8 @@ function renderRealEstate(){
     <div class="table-wrap">
       <table class="data-table">
         <thead><tr style="background:${B.teal};color:#fff">${["#","Description","Location","Date","Cost (SAR)","Valuation (SAR)","Share","Area"].map(h=>`<th style="padding:10px 12px">${h}</th>`).join("")}</tr></thead>
-        <tbody>${ksaRows}
+        <tbody>
+          ${ksaRows}
           <tr style="background:${B.tealPale};font-weight:700;border-top:2px solid ${B.teal}">
             <td colspan="4" style="padding:10px 12px;color:${B.teal}">Total KSA</td>
             <td style="padding:10px 12px;color:${B.teal}">${fmt(12264828)}</td>
@@ -686,13 +693,11 @@ function renderRealEstate(){
   </div>`;
 }
 
-// ── SHAREHOLDERS ──────────────────────────────────────────────────────────────
+// ── SHAREHOLDERS ─────────────────────────────────────────────────────────────
 function renderShareholders(){
   const tvfm=totalFVMarket();
   let shCards="";
-  state.shareholders.forEach(sh=>{
-    const docCount=Object.values(sh.docs||{}).reduce((s,arr)=>s+(arr?arr.length:0),0);
-    const uploadedTypes=SH_DOC_TYPES.filter(dt=>(sh.docs[dt.key]||[]).length>0);
+  SHAREHOLDERS.forEach(sh=>{
     shCards+=`<div class="sh-card" style="border-top-color:${sh.color};border-color:${sh.color}30">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
         <div class="sh-avatar" style="background:${sh.color}15;border:2px solid ${sh.color};color:${sh.color}">${sh.name[0]}</div>
@@ -703,33 +708,6 @@ function renderShareholders(){
         <div style="text-align:right"><div style="font-size:11px;color:${B.muted}">Portfolio share</div><div style="font-size:15px;font-weight:700;color:${B.teal}">${fmtM(tvfm*sh.pct/100)} SAR</div></div>
       </div>
       ${bar(sh.pct,sh.color)}
-      <!-- Document section -->
-      <div class="sh-docs-panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:12px;font-weight:700;color:${B.sub}">📁 Documents
-            <span style="font-weight:400;color:${B.muted}">&nbsp;(${docCount} file${docCount!==1?"s":""})</span>
-          </div>
-          ${state.role==="admin"?`<button class="btn small" data-sh="${sh.id}" id="sh-upload-btn-${sh.id}" style="font-size:10px">+ Upload</button>`:""}
-        </div>
-        <div class="doc-type-grid">
-          ${SH_DOC_TYPES.map(dt=>{
-            const list=sh.docs[dt.key]||[];
-            const hasDocs=list.length>0;
-            return `<span class="doc-type-pill ${hasDocs?"active":""}" style="${hasDocs?`background:${sh.color}15;color:${sh.color};border-color:${sh.color}40`:""}" data-sh="${sh.id}" data-dtype="${dt.key}">${dt.icon} ${dt.label}${hasDocs?` (${list.length})`:""}</span>`;
-          }).join("")}
-        </div>
-        ${uploadedTypes.length?`<div class="doc-list">
-          ${uploadedTypes.map(dt=>(sh.docs[dt.key]||[]).map((d,di)=>`
-            <div class="doc-item">
-              <span style="font-size:18px">${dt.icon}</span>
-              <div class="doc-info">
-                <div class="doc-name">${d.name}</div>
-                <div class="doc-meta">${dt.label} · ${d.date} · ${d.size}</div>
-              </div>
-              ${state.role==="admin"?`<button class="doc-del" data-sh="${sh.id}" data-dtype="${dt.key}" data-di="${di}" title="Remove">✕</button>`:""}
-            </div>`).join("")).join("")}
-        </div>`:""}
-      </div>
     </div>`;
   });
 
@@ -746,6 +724,7 @@ function renderShareholders(){
   });
 
   const pie=pieChartSVG(SHAREHOLDERS.map(sh=>({pct:sh.pct,color:sh.color})),150);
+
   const stats=[
     {l:"Founded",v:"1998"},{l:"Employees",v:"+700"},{l:"Retail Stores",v:"+130"},
     {l:"Clients",v:"+20,000"},{l:"Investments",v:"+40"},
@@ -776,30 +755,8 @@ function renderShareholders(){
     </div>
   </div>`;
 }
-function bindShareholdersEvents(){
-  // Upload buttons
-  document.querySelectorAll("[id^='sh-upload-btn-']").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      state.selShId=btn.dataset.sh;
-      state.modal="shUpload";
-      renderModal();
-    });
-  });
-  // Delete doc buttons
-  document.querySelectorAll(".doc-del").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      const shId=btn.dataset.sh;
-      const dtype=btn.dataset.dtype;
-      const di=parseInt(btn.dataset.di);
-      const sh=state.shareholders.find(s=>s.id===shId);
-      if(!sh)return;
-      sh.docs[dtype]=(sh.docs[dtype]||[]).filter((_,i)=>i!==di);
-      renderApp();
-    });
-  });
-}
 
-// ── STRUCTURE ─────────────────────────────────────────────────────────────────
+// ── STRUCTURE ────────────────────────────────────────────────────────────────
 function renderStructure(){
   let shNodes="";
   SHAREHOLDERS.forEach(sh=>{
@@ -848,6 +805,7 @@ function renderStructure(){
   <div style="text-align:center;color:${B.teal};font-size:18px;margin-bottom:20px">↓</div>
   <div class="grid-4">${sectors}</div>`;
 }
+
 function bindStructureEvents(){
   document.querySelectorAll(".struct-inv[data-inv]").forEach(el=>{
     const color=el.dataset.color;
@@ -857,12 +815,12 @@ function bindStructureEvents(){
   });
 }
 
-// ── ADMIN ─────────────────────────────────────────────────────────────────────
+// ── ADMIN ────────────────────────────────────────────────────────────────────
 function renderAdmin(){
-  let invRows="";
+  let rows="";
   state.investments.forEach(inv=>{
     const cat=CATEGORIES[inv.sector]||CATEGORIES["Retail"];
-    invRows+=`<div class="admin-inv-row">
+    rows+=`<div class="admin-inv-row">
       <span style="font-size:14px">${cat.icon}</span>
       <span style="flex:1;font-size:13px;font-weight:500">${inv.name}</span>
       ${tag(inv.sector,cat.color)}
@@ -872,113 +830,29 @@ function renderAdmin(){
       <button class="btn small" data-inv="${inv.id}" style="margin-left:8px">Open</button>
     </div>`;
   });
-
-  // User table
-  let userRows="";
-  USERS.forEach(u=>{
-    const isAdmin=u.role==="admin";
-    const isSelf=u.username===state.role;
-    userRows+=`<tr>
-      <td>${u.username}</td>
-      <td><span class="role-badge-${u.role}">${u.role}</span></td>
-      <td>${u.created}</td>
-      <td>
-        ${!isSelf&&!isAdmin?`<button class="btn small danger" data-uid="${u.id}" id="del-user-${u.id}">Delete</button>`:`<span style="font-size:11px;color:${B.muted}">${isSelf?"(you)":"protected"}</span>`}
-      </td>
-    </tr>`;
-  });
-
   return `
   <div class="page-title">⚙️ Admin Panel</div>
-  <div class="admin-tabs">
-    <button class="admin-tab${state.adminTab==="investments"?" active":""}" data-tab="investments">📂 Investments</button>
-    <button class="admin-tab${state.adminTab==="users"?" active":""}" data-tab="users">👤 User Management</button>
-  </div>
-
-  ${state.adminTab==="investments"?`
   <div class="card">
     <div style="font-weight:700;color:${B.teal};margin-bottom:12px;font-size:15px">All Investments (${state.investments.length})</div>
-    ${invRows}
-  </div>`:""}
-
-  ${state.adminTab==="users"?`
-  <div class="new-user-form card mb-20">
-    <div style="font-weight:700;font-size:14px;color:${B.teal};margin-bottom:14px">➕ Create New Viewer Account</div>
-    <div class="form-row">
-      <div>
-        <label class="form-label">Username</label>
-        <input class="form-input" id="new-user-name" placeholder="username">
-      </div>
-      <div>
-        <label class="form-label">Password</label>
-        <input class="form-input" id="new-user-pass" type="password" placeholder="password">
-      </div>
-      <div>
-        <label class="form-label">Role</label>
-        <select class="form-input" id="new-user-role">
-          <option value="viewer">Viewer</option>
-        </select>
-      </div>
-      <div style="padding-top:18px">
-        <button class="btn" id="create-user-btn">Create</button>
-      </div>
-    </div>
-    <div id="user-form-error" class="auth-error hidden" style="margin-top:10px;margin-bottom:0"></div>
-  </div>
-  <div class="card">
-    <div style="font-weight:700;color:${B.teal};margin-bottom:12px;font-size:15px">All Users (${USERS.length})</div>
-    <table class="user-table">
-      <thead><tr><th>Username</th><th>Role</th><th>Created</th><th>Action</th></tr></thead>
-      <tbody>${userRows}</tbody>
-    </table>
-  </div>`:""}`;
+    ${rows}
+  </div>`;
 }
 function bindAdminEvents(){
-  // Tab switching
-  document.querySelectorAll(".admin-tab").forEach(t=>{
-    t.addEventListener("click",()=>{state.adminTab=t.dataset.tab;renderApp();});
-  });
-  // Open investment
-  document.querySelectorAll(".admin-inv-row .btn[data-inv]").forEach(el=>{
+  document.querySelectorAll("#main-content .btn[data-inv]").forEach(el=>{
     el.addEventListener("click",()=>{state.selInvId=el.dataset.inv;state.page="detail";renderApp();});
-  });
-  // Create user
-  const createBtn=document.getElementById("create-user-btn");
-  if(createBtn) createBtn.addEventListener("click",()=>{
-    const uname=(document.getElementById("new-user-name").value||"").trim();
-    const pass=(document.getElementById("new-user-pass").value||"").trim();
-    const errEl=document.getElementById("user-form-error");
-    if(!uname||!pass){errEl.textContent="Username and password are required.";errEl.classList.remove("hidden");return;}
-    if(USERS.find(u=>u.username===uname)){errEl.textContent="Username already exists.";errEl.classList.remove("hidden");return;}
-    errEl.classList.add("hidden");
-    USERS.push({id:"u"+Date.now(),username:uname,password:pass,role:"viewer",created:new Date().toISOString().slice(0,10)});
-    document.getElementById("new-user-name").value="";
-    document.getElementById("new-user-pass").value="";
-    renderApp();
-  });
-  // Delete user
-  USERS.forEach(u=>{
-    const delBtn=document.getElementById(`del-user-${u.id}`);
-    if(delBtn) delBtn.addEventListener("click",()=>{
-      if(!confirm(`Delete user "${u.username}"?`))return;
-      USERS=USERS.filter(x=>x.id!==u.id);
-      renderApp();
-    });
   });
 }
 
-// ── MODAL ─────────────────────────────────────────────────────────────────────
+// ── MODAL ────────────────────────────────────────────────────────────────────
 function renderModal(){
   let existing=document.getElementById("modal-overlay");
   if(existing)existing.remove();
   if(!state.modal)return;
+  const inv=currentInv();
+  if(!inv)return;
 
   let inner="";
-
-  // Investment edit
   if(state.modal==="editInfo"){
-    const inv=currentInv();
-    if(!inv)return;
     inner=`<h3>Edit — ${inv.name}</h3>
     ${[{k:"notes",l:"Notes",t:"text"},{k:"invested",l:"Invested (SAR)",t:"number"},{k:"fvMarket",l:"Fair Value Market (SAR)",t:"number"},{k:"dividends",l:"Dividends (SAR)",t:"number"}].map(f=>`
       <div style="margin-bottom:12px">
@@ -989,40 +863,11 @@ function renderModal(){
       <button class="btn outline" id="modal-cancel">Cancel</button>
       <button class="btn" id="modal-save-info">Save</button>
     </div>`;
-  }
-
-  // Investment doc upload
-  else if(state.modal==="uploadDoc"){
+  } else if(state.modal==="uploadDoc"){
     inner=`<h3>Upload Document</h3>
-    <input type="file" id="hidden-file-input" style="display:none" multiple>
-    <button class="btn" id="choose-file-btn" style="width:100%;padding:12px;margin-bottom:10px">📂 Choose File(s)</button>
+    <input type="file" id="hidden-file-input" style="display:none">
+    <button class="btn" id="choose-file-btn" style="width:100%;padding:12px;margin-bottom:10px">📂 Choose File</button>
     <button class="btn outline" id="modal-cancel" style="width:100%;padding:12px">Cancel</button>`;
-  }
-
-  // Shareholder doc upload
-  else if(state.modal==="shUpload"){
-    const sh=state.shareholders.find(s=>s.id===state.selShId);
-    if(!sh)return;
-    inner=`<h3>${sh.name} — Upload Documents</h3>
-    <p style="font-size:13px;color:${B.sub};margin-bottom:16px">Select document type, then choose the file to upload.</p>
-    <div class="doc-type-list">
-      ${SH_DOC_TYPES.map(dt=>{
-        const list=sh.docs[dt.key]||[];
-        return `<div class="doc-type-row${list.length?" uploaded":""}">
-          <div>
-            <div class="doc-type-label">${dt.icon} ${dt.label}</div>
-            <div class="doc-type-status">${list.length?list.map(d=>d.name).join(", "):"No file uploaded"}</div>
-          </div>
-          <div style="display:flex;gap:6px;align-items:center">
-            <input type="file" id="sh-file-${dt.key}" style="display:none" multiple>
-            <button class="btn small" data-dtype="${dt.key}" id="sh-choose-${dt.key}">Upload</button>
-          </div>
-        </div>`;
-      }).join("")}
-    </div>
-    <div class="modal-actions">
-      <button class="btn" id="modal-cancel">Done</button>
-    </div>`;
   }
 
   const div=document.createElement("div");
@@ -1031,12 +876,12 @@ function renderModal(){
   div.innerHTML=`<div class="modal-box">${inner}</div>`;
   document.body.appendChild(div);
 
+  // bind
   const cancelBtn=div.querySelector("#modal-cancel");
   if(cancelBtn) cancelBtn.addEventListener("click",()=>{state.modal=null;div.remove();});
   div.addEventListener("click",e=>{if(e.target===div){state.modal=null;div.remove();}});
 
   if(state.modal==="editInfo"){
-    const inv=currentInv();
     div.querySelectorAll(".modal-input").forEach(inp=>{
       inp.addEventListener("input",e=>{state.form[e.target.dataset.key]=e.target.value;});
     });
@@ -1044,7 +889,7 @@ function renderModal(){
     if(saveBtn) saveBtn.addEventListener("click",()=>{
       state.investments=state.investments.map(i=>{
         if(i.id!==inv.id)return i;
-        return{...i,
+        return {...i,
           notes:state.form.notes||i.notes,
           invested:parseFloat(state.form.invested)||i.invested,
           fvMarket:parseFloat(state.form.fvMarket)||i.fvMarket,
@@ -1054,83 +899,47 @@ function renderModal(){
       });
       state.modal=null;div.remove();renderApp();
     });
-  }
-
-  else if(state.modal==="uploadDoc"){
-    const inv=currentInv();
+  } else if(state.modal==="uploadDoc"){
     const fileInput=div.querySelector("#hidden-file-input");
     const chooseBtn=div.querySelector("#choose-file-btn");
     if(chooseBtn) chooseBtn.addEventListener("click",()=>fileInput.click());
     if(fileInput) fileInput.addEventListener("change",e=>{
-      const files=Array.from(e.target.files);
-      if(!files.length)return;
+      const f=e.target.files[0];
+      if(!f)return;
       state.investments=state.investments.map(i=>{
         if(i.id!==inv.id)return i;
-        const newDocs=files.map(f=>({name:f.name,date:new Date().toISOString().slice(0,10),size:(f.size/1024).toFixed(1)+"KB"}));
-        return{...i,docs:[...i.docs,...newDocs]};
+        return {...i,docs:[...i.docs,{name:f.name,date:new Date().toISOString().slice(0,10),size:(f.size/1024).toFixed(1)+"KB"}]};
       });
       state.modal=null;div.remove();renderApp();
     });
   }
-
-  else if(state.modal==="shUpload"){
-    SH_DOC_TYPES.forEach(dt=>{
-      const fileInput=div.querySelector(`#sh-file-${dt.key}`);
-      const chooseBtn=div.querySelector(`#sh-choose-${dt.key}`);
-      if(!fileInput||!chooseBtn)return;
-      chooseBtn.addEventListener("click",()=>fileInput.click());
-      fileInput.addEventListener("change",e=>{
-        const files=Array.from(e.target.files);
-        if(!files.length)return;
-        const sh=state.shareholders.find(s=>s.id===state.selShId);
-        if(!sh)return;
-        const existing=sh.docs[dt.key]||[];
-        sh.docs[dt.key]=[...existing,...files.map(f=>({
-          name:f.name,
-          date:new Date().toISOString().slice(0,10),
-          size:(f.size/1024).toFixed(1)+"KB"
-        }))];
-        // Re-render modal in place to show updated status
-        state.modal="shUpload";
-        div.remove();
-        renderModal();
-      });
-    });
-  }
 }
 
-// ── AUTH ──────────────────────────────────────────────────────────────────────
+// ── AUTH LOGIC ───────────────────────────────────────────────────────────────
 function attemptLogin(){
-  const u=(document.getElementById("username-input").value||"").trim();
+  const u=document.getElementById("username-input").value.trim();
   const p=document.getElementById("password-input").value;
-  const user=findUser(u,p);
-  if(user){
-    state.authed=true;state.role=user.role;state.page="structure";
+  if(CREDS[u]===p){
+    state.authed=true;state.role=u;state.page="overview";
     document.getElementById("auth-screen").classList.add("hidden");
     document.getElementById("app").classList.remove("hidden");
     renderApp();
   } else {
     const errEl=document.getElementById("auth-error");
-    errEl.textContent="Wrong password";
+    errEl.textContent="Invalid credentials — try admin / thabat2024";
     errEl.classList.remove("hidden");
   }
 }
 
-// ── BOOT ──────────────────────────────────────────────────────────────────────
+// ── BOOT ─────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded",()=>{
-  // Auth
+  // Auth events
   document.getElementById("login-btn").addEventListener("click",attemptLogin);
   ["username-input","password-input"].forEach(id=>{
     document.getElementById(id).addEventListener("keydown",e=>{if(e.key==="Enter")attemptLogin();});
   });
 
-  // Sidebar toggle
-  document.getElementById("sidebar-toggle").addEventListener("click",()=>{
-    state.sidebarCollapsed=!state.sidebarCollapsed;
-    updateSidebar();
-  });
-
-  // Nav page buttons
+  // Nav events
   document.querySelectorAll(".nav-btn[data-page]").forEach(btn=>{
     btn.addEventListener("click",()=>{
       if(btn.dataset.page==="admin"&&state.role!=="admin")return;
@@ -1139,10 +948,8 @@ document.addEventListener("DOMContentLoaded",()=>{
       renderApp();
     });
   });
-
-  // Sign out
   document.getElementById("signout-btn").addEventListener("click",()=>{
-    state.authed=false;state.role="";state.page="structure";
+    state.authed=false;state.role="";state.page="overview";
     document.getElementById("app").classList.add("hidden");
     document.getElementById("auth-screen").classList.remove("hidden");
     document.getElementById("username-input").value="";
@@ -1150,8 +957,10 @@ document.addEventListener("DOMContentLoaded",()=>{
     document.getElementById("auth-error").classList.add("hidden");
   });
 
-  // Back button
+  // Back button (detail page)
   document.getElementById("back-btn").addEventListener("click",()=>{
     state.page="investments";renderApp();
   });
+
+  renderAuth();
 });
