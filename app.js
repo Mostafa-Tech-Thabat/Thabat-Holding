@@ -926,7 +926,7 @@ function attemptLogin(){
     renderApp();
   } else {
     const errEl=document.getElementById("auth-error");
-    errEl.textContent="Invalid credentials — try admin / thabat2024";
+    errEl.textContent="Invalid credentials";
     errEl.classList.remove("hidden");
   }
 }
