@@ -34,29 +34,46 @@
   <!-- ── MAIN APP ───────────────────────────────────────────────────────── -->
   <div id="app" class="hidden">
 
-    <!-- Navigation -->
-    <nav id="app-nav">
-      <div class="nav-logo">
-        <div class="nav-logo-icon">🏛️</div>
-        <span>Thabat Holding</span>
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">🏛️</div>
+          <span class="sidebar-logo-text">Thabat Holding</span>
+        </div>
+        <button id="sidebar-toggle" title="Collapse sidebar">‹</button>
       </div>
 
-      <button class="nav-btn" data-page="overview">📊 Overview</button>
-      <button class="nav-btn" data-page="investments">📂 Investments</button>
-      <button class="nav-btn" data-page="realestate">🏗️ Real Estate</button>
-      <button class="nav-btn" data-page="shareholders">👥 Shareholders</button>
-      <button class="nav-btn" data-page="structure">🌳 Structure</button>
-      <button class="nav-btn" id="nav-admin-btn" data-page="admin" style="display:none">⚙️</button>
+      <nav class="sidebar-nav">
+        <button class="nav-btn" data-page="structure">🌳 <span class="nav-label">Structure</span></button>
+        <button class="nav-btn" data-page="overview">📊 <span class="nav-label">Overview</span></button>
+        <button class="nav-btn" data-page="investments">📂 <span class="nav-label">Investments</span></button>
+        <button class="nav-btn" data-page="realestate">🏗️ <span class="nav-label">Real Estate</span></button>
+        <button class="nav-btn" data-page="shareholders">👥 <span class="nav-label">Shareholders</span></button>
+        <button class="nav-btn hidden" id="nav-admin-btn" data-page="admin">⚙️ <span class="nav-label">Admin</span></button>
+      </nav>
 
-      <!-- Detail page back button (hidden on other pages) -->
-      <button id="back-btn" class="nav-btn hidden" style="display:none">← Investments</button>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-user-icon">👤</div>
+          <span id="nav-user-label" class="nav-label"></span>
+        </div>
+        <button id="signout-btn" class="sidebar-signout">
+          <span class="signout-icon">⏏</span>
+          <span class="nav-label">Sign Out</span>
+        </button>
+      </div>
+    </aside>
 
-      <span id="nav-user-label" class="nav-user"></span>
-      <button id="signout-btn" class="nav-signout">Sign Out</button>
-    </nav>
-
-    <!-- Page content -->
-    <div id="main-content"></div>
+    <!-- Main area -->
+    <div id="app-body">
+      <!-- Top bar (for detail page back button) -->
+      <div id="top-bar">
+        <button id="back-btn" class="back-btn hidden">← Back to Investments</button>
+      </div>
+      <!-- Page content -->
+      <div id="main-content"></div>
+    </div>
 
   </div>
 
